@@ -1,0 +1,666 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class Shop {
+    // Define an array to store a fixed number of Book objects.
+// The array has a size of 10, which means it can store up to 10 books.
+// This array is used to represent the book catalog in the shop.
+    private static Booklist[] books = new Booklist[10];
+
+    // Define a List to store Book objects dynamically/automatically.
+// The inventory list is used to store the available books in the shop.
+// It can grow dynamically to accommodate any number of books.
+    private static List<Booklist> inventory = new ArrayList<>();
+
+    // A List to store Customer objects dynamically.
+// The customers list is used to store information about the registered customers.
+// It can grow dynamically to accommodate any number of customers.
+    private static List<Customer> customers = new ArrayList<>();
+
+    // Create an instance of the Cart class to represent the shopping cart for the customer.
+// The cart object will be used to add books to the cart during the shopping process.
+// It allows the customer to select books for purchase before checkout.
+    private static Cart cart = new Cart();
+
+    // Define a variable to store the currently logged-in customer.
+// This variable will be updated when a customer successfully logs in.
+// It helps keep track of the customer's state and cart while using the system.
+    private static Customer loggedInCustomer;
+
+    public static void main(String[] args) {
+        // Initialize the book inventory and customers
+        initializeBooks(); // This method populates the 'books' array with Book objects.
+        customers.add(new RegularCustomer(1, 12345, "Hassan", "Shahid", "Male", "2002-07-12"));
+        // A new RegularCustomer object is created and added to the 'customers' list.
+
+        while(true) {
+
+            // Display the welcome message and login options
+            System.out.println("Welcome to Hassan's Book Shop\n");
+            System.out.println("LOGIN\n");
+            System.out.println("1 for Admin");
+            System.out.println("2 for Customer");
+            System.out.println("3 for Exit");
+            System.out.print("Enter Option: ");
+
+            // Read the user's choice for login (either admin or customer)
+            Scanner log = new Scanner(System.in);
+            int opt = log.nextInt();
+
+            // Check the user's choice and proceed accordingly
+            if (opt == 1) {
+                // If the user chose '1' for admin login
+                if (adminLoginCheck()) {
+                    // Step 4.1: If admin login is successful, display the admin menu
+                    adminMenu();
+                }
+            } else if (opt == 2) {
+                // If the user chose '2' for customer login
+                customerLoginCheck();
+                // Perform customer login process and check the credentials
+                customerMenu();
+                // Display the customer menu and let the customer perform actions.
+            } else if (opt == 3) {
+                // If the user entered an invalid option
+                System.out.println("GOODBYE!! ");
+                return;
+            } else {
+                System.out.println("Invalid Input!");
+            }
+        }
+
+        // The main method execution ends here, and the program terminates.
+    }
+
+    private static void initializeBooks() {
+        books[0] = new Booklist("Quantum Physics", "Maaz", "Hassan", "Yes", 19.99, 2);
+        books[1] = new Booklist("To Kill a Mockingbird", "Harper Lee", "Lippincott", "Yes", 10.99, 3);
+        books[2] = new Booklist("1984", "George Orwell", "Warburg", "No", 9.99, 5);
+        books[3] = new Booklist("The Great Gatsby", "F. Scott Fitzgerald", "Charles Scribner's Sons", "Yes", 12.99, 4);
+        books[4] = new Booklist("The Catcher in the Rye", "JD Salinger", "Little, Brown and Company", "No", 8.99, 9);
+        books[5] = new Booklist("To the Lighthouse", "Virginia Woolf", "The Hogarth Press", "Yes", 11.99, 6);
+    }
+
+    private static boolean adminLoginCheck() {
+        int adminId = 2335;
+        int adminPassword = 1122;
+
+        // Step 1: Prompt the user for admin access confirmation
+        System.out.println("ADMIN ACCESS ONLY!");
+        System.out.println("\nDo you wish to continue? Y or N: ");
+        Scanner scanner = new Scanner(System.in);
+        char res = scanner.next().charAt(0);
+
+        // Step 2: Check if the user wants to continue or exit to the home page
+        if (res == 'N' || res == 'n') {
+            System.out.println("\nMoving to Home Page...\n");
+            return false; // The admin login attempt is aborted, and the user returns to the home page.
+        }
+
+        // Step 3: Prompt the user for admin ID and password
+        System.out.println("\nEnter your ID: ");
+        int enteredAdminId = scanner.nextInt();
+        System.out.println("\nEnter your Password: ");
+        int enteredAdminPassword = scanner.nextInt();
+
+        // Step 4: Check the entered ID and password against the predefined admin credentials
+        if (enteredAdminId == adminId && enteredAdminPassword == adminPassword) {
+            System.out.println("\nYOU HAVE SUCCESSFULLY LOGGED IN!\n");
+            return true; // Admin login is successful, and the admin is granted access.
+        } else {
+            // Step 5: If the entered ID or password is incorrect
+            System.out.println("\nIncorrect ID or Password.");
+            return false; // Admin login failed.
+        }
+    }
+
+    private static void adminMenu() {
+        while (true) {
+            // Display the admin menu options
+            System.out.println("Admin Options:");
+            System.out.println("1. Update Inventory");
+            System.out.println("2. Display All Books Available");
+            System.out.println("3. Exit");
+            System.out.print("Enter option: ");
+
+            Scanner input = new Scanner(System.in);
+            int adminOpt = input.nextInt(); // Read the admin's choice from the input
+
+            // Check the admin's choice and perform the corresponding action
+            switch (adminOpt) {
+                case 1:
+                    updateInventory();
+                    break; // Call the 'updateInventory()' method to allow the admin to add new books to the inventory.
+                case 2:
+                    displayAllBooks(books);
+                    break; // Call the 'displayAllBooks()' method to show all books available in the inventory.
+                case 3:
+                    System.out.println("GOODBYE SEE YOU!!");
+                    return; // Exit the admin menu and return to the main menu.
+                default:
+                    System.out.println("Wrong Input, Please Enter a Valid Input");
+                    // If the admin enters an invalid option, inform them and display the menu again.
+            }
+        }
+    }
+
+
+    private static void customerLoginCheck() {
+        Scanner scanner = new Scanner(System.in);
+
+        // Display the Customer Login options
+        System.out.println(" ");
+        System.out.println("CUSTOMER LOGIN\n");
+        System.out.println("1. Existing Customer");
+        System.out.println("2. New Customer");
+        System.out.print("Enter option: ");
+        int option = scanner.nextInt(); // Read the customer's choice from the input
+
+        if (option == 1) {
+            // Customer selects "Existing Customer" option
+            System.out.println("Enter your ID: ");
+            int customerId = scanner.nextInt(); // Prompt the customer to enter their ID
+            System.out.println("Enter your Password: ");
+            int customerPassword = scanner.nextInt(); // Prompt the customer to enter their password
+
+            // Check if the entered customer ID and password match any existing customer
+            for (Customer customer : customers) {
+                if (customer.customerId == customerId && customer.customerPassword == customerPassword) {
+                    if (customer instanceof RegularCustomer) {
+                        // Step 4: If the customer is a RegularCustomer, perform the following actions
+                        RegularCustomer regularCustomer = (RegularCustomer) customer;
+                        System.out.println("\nWelcome, " + regularCustomer.firstName + "!");
+                        loggedInCustomer = regularCustomer; // Set the loggedInCustomer variable to the regularCustomer
+                    }
+                    return; // The customer login is successful, and the method terminates.
+                }
+            }
+
+            // If the customer login fails (invalid ID or password)
+            System.out.println("Incorrect ID or Password. Please try again.");
+            customerLoginCheck(); // Repeat the customer login process.
+        } else if (option == 2) {
+            // Customer selects "New Customer" option
+            System.out.println("Enter your first name: ");
+            String firstName = scanner.next(); // Prompt the customer to enter their first name
+            System.out.println("Enter your last name: ");
+            String lastName = scanner.next(); // Prompt the customer to enter their last name
+            System.out.println("Enter your gender (M/F): ");
+            String gender = scanner.next(); // Prompt the customer to enter their gender
+            System.out.println("Enter your date of birth (Year/Month/Day): ");
+            String dateOfBirth = scanner.next(); // Prompt the customer to enter their date of birth
+
+            int customerId = customers.size() + 1; // Generate a new customer ID based on the size of the customers list
+            System.out.println("Set your password: ");
+            int customerPassword = scanner.nextInt(); // Prompt the customer to set a password for their account
+
+            // Create a new RegularCustomer object and add it to the customers list
+            RegularCustomer newCustomer = new RegularCustomer(customerId, customerPassword, firstName, lastName, gender, dateOfBirth);
+            customers.add(newCustomer);
+
+            // Display a welcome message for the newly registered customer
+            System.out.println("\nWelcome," + newCustomer.firstName + "! You have been registered.");
+            loggedInCustomer = newCustomer; // Set the loggedInCustomer variable to the newly registered customer
+        } else {
+            // If the customer enters an invalid option
+            System.out.println("Invalid option. Please try again.");
+            customerLoginCheck(); // Repeat the customer login process.
+        }
+    }
+
+    private static void customerMenu() {
+        Scanner input = new Scanner(System.in);
+
+        // Start an infinite loop to keep the customer menu running until the customer chooses to exit.
+        while (true) {
+            // Display the Customer Options menu
+            System.out.println("Customer Options:");
+            System.out.println("1. Search Book / Author");
+            System.out.println("2. Display All Books Available");
+            System.out.println("3. Exit");
+            System.out.print("Enter option: ");
+
+            int customerOpt = input.nextInt(); // Read the customer's choice from the input
+
+            switch (customerOpt) {
+                case 1:
+                    // Customer selects "Search Book / Author" option
+                    search(); // Call the search() method to perform book search functionality.
+                    break;
+                case 2:
+                    // Customer selects "Display All Books Available" option
+                    displayAllBooks(books); // Call the displayAllBooks() method to show all available books.
+                    break;
+                case 3:
+                    // Customer selects "Exit" option
+                    System.out.println("GOODBYE, See you " + loggedInCustomer.firstName + "!");
+                    return; // Exit the method and return to the main menu.
+                default:
+                    // If the customer enters an invalid option
+                    System.out.println("Wrong Input! Please try again");
+            }
+        }
+    }
+
+    public static void search() {
+        Scanner scanner = new Scanner(System.in);
+
+        boolean cont1 = true; // Flag to control the outer loop
+        int prog = 0; // Progress variable (not used in the provided code)
+
+        while (prog == 0) { // Outer loop (not used in the provided code)
+            while (cont1) { // Inner loop to allow multiple searches
+
+                // Prompt the user to enter the book's name or author's name
+                System.out.print("\nEnter book's name or author's name\n(or 'exit' to quit): ");
+                String detail = scanner.nextLine();
+
+                if (detail.equals("exit")) {
+                    // If the user enters 'exit', move back to the main menu
+                    System.out.println("Moving to Main Menu...\n");
+                    return;
+                }
+
+                boolean found = false; // Flag to indicate if a book is found
+                for (int i = 0; i < books.length; i++) { // Loop through the array of books
+                    if (books[i] != null && (detail.equals(books[i].title) || detail.equals(books[i].author))) {
+                        // If the input matches the book's title or author, it's found
+                        found = true;
+                        System.out.println("\nAre you looking for this book? " + books[i].title +
+                                " by " + books[i].author);
+
+                        System.out.println("\nType Y for Yes and Type N for No.");
+                        char res1 = scanner.nextLine().charAt(0);
+
+                        if (books[i].availability.equals("No")) {
+                            // If the book is not available, inform the user
+                            System.out.println("This book is not available right now.");
+                            break; // Exit the inner loop
+                        }
+
+                        if (res1 == 'Y' || res1 == 'y') {
+                            // If the user wants to view details and potentially buy the book
+
+                            // Display the book's details
+                            System.out.println("\nThese are the details of the book:");
+                            System.out.println("Title: " + books[i].title);
+                            System.out.println("Author: " + books[i].author);
+                            System.out.println("Publisher: " + books[i].publisher);
+                            System.out.println("Available: " + books[i].availability);
+                            System.out.println("Cost: " + books[i].getPrice() + "$");
+                            System.out.println("Copies available: " + books[i].quantity);
+
+                            System.out.print("\nDo you want to add it to cart? Y or N: ");
+                            char res2 = scanner.nextLine().charAt(0);
+
+                            if (res2 == 'Y' || res2 == 'y') {
+                                // If the user wants to buy the book
+                                books[i].quantity -= 1; // Decrease the quantity of the book by 1
+                                cart.addToCart(books[i]); // Add the book to the cart
+                                System.out.println("You have successfully added the book to your cart.");
+                                System.out.println("Remaining copies of the book: " + books[i].quantity);
+
+                                // Ask if the user wants to add another book or proceed to checkout
+                                while (true) {
+                                    System.out.print("\nDo you want to add another book to cart? Y or N: ");
+                                    char res4 = scanner.nextLine().charAt(0);
+
+                                    if (res4 == 'N' || res4 == 'n') {
+                                        // If the user doesn't want to add more books, proceed to checkout
+                                        System.out.println("\nCheckOut\n");
+                                        System.out.println("Books in your cart:");
+                                        cart.displayCart();
+                                        // Calculate the total price using the Checkout class
+                                        double totalPrice = new Cart.Checkout().calculateTotalPrice(cart.getCartItems());
+                                        System.out.println("Total price: $" + totalPrice);
+
+                                        System.out.print("Do you want to proceed? (Y/N): ");
+                                        char res5 = scanner.nextLine().charAt(0);
+
+                                        if (res5 == 'Y' || res5 == 'y') {
+                                            System.out.println("Thank you for purchasing");
+                                        }
+
+                                        // Clear the cart after checkout
+                                        cart.clearCart();
+
+                                        // Return to the main menu
+                                        System.out.println("\nMoving to Main Menu...\n");
+                                        return;
+                                    } else if (res4 == 'Y' || res4 == 'y') {
+                                        // If the user wants to add another book, break out of the inner loop
+                                        break;
+                                    } else {
+                                        System.out.println("Invalid input. Please enter Y or N.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Search the inventory list for matching books
+                for (Booklist book : inventory) {
+                    if (book != null && (detail.equals(book.title) || detail.equals(book.author))) {
+                        found = true;
+                        System.out.println("\nAre you looking for this book? " + book.title +
+                                " by " + book.author);
+
+                        System.out.println("\nType Y for Yes and Type N for No.");
+                        char res1 = scanner.nextLine().charAt(0);
+
+                        if (book.availability.equals("No")) {
+                            System.out.println("This book is not available right now.");
+                            break; // Exit the inner loop
+                        }
+
+                        if (res1 == 'Y' || res1 == 'y') {
+                            System.out.println("\nThese are the details of the book:");
+                            System.out.println("Title: " + book.title);
+                            System.out.println("Author: " + book.author);
+                            System.out.println("Publisher: " + book.publisher);
+                            System.out.println("Available: " + book.availability);
+                            System.out.println("Cost: " + book.getPrice() + "$");
+                            System.out.println("Copies available: " + book.quantity);
+
+                            System.out.print("\nDo you want to add it to cart? Y or N: ");
+                            char res2 = scanner.nextLine().charAt(0);
+
+                            if (res2 == 'Y' || res2 == 'y') {
+                                // If the user wants to buy the book
+                                book.quantity -= 1; // Decrease the quantity of the book by 1
+                                cart.addToCart(book); // Add the book to the cart
+                                System.out.println("You have successfully added the book to your cart.");
+                                System.out.println("Remaining copies of the book: " + book.quantity);
+
+                                // Ask if the user wants to add another book or proceed to checkout
+                                while (true) {
+                                    System.out.print("\nDo you want to add another book to cart? Y or N: ");
+                                    char res4 = scanner.nextLine().charAt(0);
+
+                                    if (res4 == 'N' || res4 == 'n') {
+                                        // If the user doesn't want to add more books, proceed to checkout
+                                        if (!cart.getCartItems().isEmpty()) {
+                                            System.out.println("\nCheckOut\n");
+                                            System.out.println("Books in your cart:");
+                                            cart.displayCart();
+                                            double totalPrice = new Cart.Checkout().calculateTotalPrice(cart.getCartItems());
+                                            System.out.println("Total price: $" + totalPrice);
+
+                                            System.out.print("Do you want to proceed? (Y/N): ");
+                                            char res5 = scanner.nextLine().charAt(0);
+
+                                            if (res5 == 'Y' || res5 == 'y') {
+                                                System.out.println("Thank you for purchasing");
+
+                                            }
+
+                                            // Clear the cart after checkout
+                                            cart.clearCart();
+                                        }
+
+                                        // Return to the main menu
+                                        System.out.println("\nMoving to Main Menu...\n");
+                                        return;
+                                    } else if (res4 == 'Y' || res4 == 'y') {
+                                        // If the user wants to add another book, break out of the inner loop
+                                        break;
+                                    } else {
+                                        System.out.println("Invalid input. Please enter Y or N.");
+                                    }
+                                }
+                            }
+
+                            // Prompt the user if they want to search for another book or exit
+                            System.out.print("\nDo you want to search for another book? Y or N: ");
+                            char res3 = scanner.nextLine().charAt(0);
+
+                            if (res3 == 'N' || res3 == 'n') {
+                                // If the user wants to exit, proceed to checkout if the cart is not empty
+                                if (!cart.getCartItems().isEmpty()) {
+                                    System.out.println("\nCheckOut\n");
+                                    System.out.println("Books in your cart:");
+                                    cart.displayCart();
+                                    double totalPrice = new Cart.Checkout().calculateTotalPrice(cart.getCartItems());
+                                    System.out.println("Total price: $" + totalPrice);
+
+                                    System.out.print("Do you want to proceed? (Y/N): ");
+                                    char res5 = scanner.nextLine().charAt(0);
+
+                                    if (res5 == 'Y' || res5 == 'y') {
+                                        System.out.println("Thank you for purchasing");
+
+                                    }
+
+                                    // Clear the cart after checkout
+                                    cart.clearCart();
+                                }
+
+                                // Return to the main menu
+                                System.out.println("\nMoving to Main Menu...\n");
+                                return;
+                            } else {
+                                cont1 = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+    public static void updateInventory() {
+        Scanner input = new Scanner(System.in); // Create a new Scanner object to read user input.
+        char res; // Declare a char variable 'res' to store the user's response (Y/N).
+
+        System.out.println("\nTo Add a New Book\n"); // Display a message to inform the user that they are adding a new book.
+
+        do {
+            System.out.print("Enter the book name: "); // Prompt the user to enter the book's name.
+            String name = input.nextLine(); // Read the book's name from the input.
+
+            System.out.print("Enter the author's name: "); // Prompt the user to enter the author's name.
+            String author = input.nextLine(); // Read the author's name from the input.
+
+            System.out.print("Enter the publisher's name: "); // Prompt the user to enter the publisher's name.
+            String publisher = input.nextLine(); // Read the publisher's name from the input.
+
+            System.out.print("Enter the availability (Yes/No): "); // Prompt the user to enter the availability of the book (Yes/No).
+            String availability = input.nextLine(); // Read the availability from the input.
+
+            System.out.print("Enter the price: "); // Prompt the user to enter the price of the book.
+            double price = input.nextDouble(); // Read the price from the input.
+
+            System.out.print("Enter the number of copies: "); // Prompt the user to enter the number of copies of the book.
+            int quantity = input.nextInt(); // Read the quantity from the input.
+
+            Booklist newBook = new Booklist(name, author, publisher, availability, price, quantity); // Create a new Book object with the entered details.
+
+            System.out.println("\nThese are the details of the New Book\n");
+            System.out.println("Name: " + newBook.title); // Display the name of the new book.
+            System.out.println("Author: " + newBook.author); // Display the author of the new book.
+            System.out.println("Publisher: " + newBook.publisher); // Display the publisher of the new book.
+            System.out.println("Availability: " + newBook.availability); // Display the availability of the new book.
+            System.out.println("Price: " + newBook.getPrice()); // Display the price of the new book.
+            System.out.println("Copies: " + newBook.quantity + "\n"); // Display the number of copies of the new book.
+
+            for (int i = 0; i < books.length; i++) {
+                if (books[i] == null) {
+                    books[i] = newBook; // Add the new book to the array of books.
+                    break;
+                }
+            }
+
+            System.out.println("Book added to inventory."); // Inform the user that the book has been added to the inventory.
+            System.out.print("Do you want to add another book? (Y/N) ");
+            res = input.next().charAt(0); // Ask the user if they want to add another book (Y/N).
+            input.nextLine(); // Consume the newline character left in the input buffer.
+
+        } while (res == 'Y' || res == 'y'); // Repeat the loop as long as the user wants to add another book.
+
+        System.out.println("Inventory updated."); // Inform the user that the inventory has been updated.
+        System.out.println("\nMoving back to Home Page ....\n"); // Display a message indicating that the program is returning to the home page.
+    }
+
+
+    public static void displayAllBooks(Booklist[] books) {
+        for (Booklist book : books) {
+            if (book != null) {
+                display(book);
+            }
+        }
+    }
+
+    public static void display(Booklist book) {
+        System.out.println("Name: " + book.title);
+        System.out.println("Author: " + book.author);
+        System.out.println("Publisher: " + book.publisher);
+        System.out.println("Available: " + book.availability);
+        System.out.println("Price: " + book.getPrice());
+        System.out.println("Copies: " + book.quantity);
+        System.out.println();
+    }
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+
+// Cart class to represent a shopping cart for books
+class Cart {
+    // Private field to store the list of books in the cart
+    private List<Booklist> cartItems = new ArrayList<>();
+
+    // Method to add a book to the cart
+    public void addToCart(Booklist book) {
+        cartItems.add(book);
+    }
+
+    // Method to display the details of each book in the cart
+    public void displayCart() {
+        for (Booklist book : cartItems) {
+            display(book);
+        }
+    }
+
+    // Method to get the list of books in the cart
+    public List<Booklist> getCartItems() {
+        return cartItems;
+    }
+
+    // Method to clear the contents of the cart (remove all books)
+    public void clearCart() {
+        cartItems.clear();
+    }
+
+    // Helper method to display the details of a book (title, author, and price)
+    private void display(Booklist book) {
+        System.out.println("Name: " + book.title);
+        System.out.println("Author: " + book.author);
+        System.out.println("Price: $" + book.getPrice());
+        System.out.println();
+    }
+
+    // Static nested class Checkout extending the Cart class
+    static class Checkout extends Cart {
+        // Method to calculate the total price of all books in the cart
+        // (The method takes a List of Book items as an argument)
+        protected double calculateTotalPrice(List<Booklist> cartItems) {
+            double totalPrice = 0;
+
+            // Loop through each book in the cart and add its price to the total price
+            for (Booklist book : cartItems) {
+                totalPrice += book.getPrice();
+            }
+
+            return totalPrice; // Return the calculated total price
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+// Parent Abstract class representing a Customer
+abstract class Customer {
+    // Instance variables to store customer information
+    int customerId;         // Stores the unique ID of the customer
+    int customerPassword;   // Stores the password of the customer
+    String firstName;       // Stores the first name of the customer
+    String lastName;        // Stores the last name of the customer
+    String gender;          // Stores the gender of the customer
+    String dateOfBirth;     // Stores the date of birth of the customer
+
+    // Parameterized constructor to initialize the customer information
+    public Customer(int customerId, int customerPassword, String firstName, String lastName, String gender, String dateOfBirth) {
+        this.customerId = customerId;                 // Assign the 'customerId' parameter value to the 'customerId' instance variable
+        this.customerPassword = customerPassword;     // Assign the 'customerPassword' parameter value to the 'customerPassword' instance variable
+        this.firstName = firstName;                   // Assign the 'firstName' parameter value to the 'firstName' instance variable
+        this.lastName = lastName;                     // Assign the 'lastName' parameter value to the 'lastName' instance variable
+        this.gender = gender;                         // Assign the 'gender' parameter value to the 'gender' instance variable
+        this.dateOfBirth = dateOfBirth;               // Assign the 'dateOfBirth' parameter value to the 'dateOfBirth' instance variable
+    }
+}
+
+// Child class 'RegularCustomer' extending the 'Customer' class
+class RegularCustomer extends Customer {
+    // Constructor for creating a 'RegularCustomer' object
+    public RegularCustomer(int customerId, int customerPassword, String firstName, String lastName, String gender, String dateOfBirth) {
+        // Call the superclass (Customer) constructor to initialize customer information
+        // using the provided arguments to construct a 'RegularCustomer' object
+        super(customerId, customerPassword, firstName, lastName, gender, dateOfBirth);
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class Booklist {
+    String title; // Declare a String variable to store the title of the book.
+    String author; // Declare a String variable to store the author's name of the book.
+    String publisher; // Declare a String variable to store the publisher's name of the book.
+    String availability; // Declare a String variable to store the availability status of the book.
+    double price; // Declare a double variable to store the price of the book.
+    int quantity; // Declare an integer variable to store the quantity of the book.
+
+    // Constructor to initialize the Book object with the provided details.
+    public Booklist(String title, String author, String publisher, String availability, double price, int quantity) {
+        this.title = title; // Assign the provided title to the 'title' instance variable.
+        this.author = author; // Assign the provided author to the 'author' instance variable.
+        this.publisher = publisher; // Assign the provided publisher to the 'publisher' instance variable.
+        this.availability = availability; // Assign the provided availability to the 'availability' instance variable.
+        this.price = price; // Assign the provided price to the 'price' instance variable.
+        this.quantity = quantity; // Assign the provided quantity to the 'quantity' instance variable.
+    }
+
+    // Method to get the price of the book.
+    public double getPrice() {
+        return price; // Return the 'price' instance variable, which represents the price of the book.
+    }
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////****MADE BY HASSAN SHAHID****///////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
